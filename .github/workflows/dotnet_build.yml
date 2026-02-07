@@ -33,7 +33,7 @@ jobs:
 
     ### Deploy to GitHub Pages
     - name: Deploy to GitHub Pages
-      uses: kingtechnl/githubactions/deploy-pages@main
+      uses: kingtechnl/githubactions/deploy-pages@docusaurus
       with:
         sourceDir: publish
         targetBranch: gh-pages
