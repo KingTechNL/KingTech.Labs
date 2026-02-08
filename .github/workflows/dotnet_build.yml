@@ -40,5 +40,5 @@ jobs:
         commitMessage: "Deploy site github actions"
         userName: github-actions
         userEmail: github-actions@users.noreply.github.com
-        token: ${{ secrets.GITHUB_TOKEN }}
+        token: ${{ secrets.DEPLOYMENT_TOKEN }}
     
