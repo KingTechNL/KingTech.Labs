@@ -31,7 +31,7 @@ jobs:
     - name: Build docusaurus site
       uses: kingtechnl/githubactions/docusaurus/build@feature/docusaurus
       with:
-        sourceDir: ''
+        sourceDir: '${{ github.workspace }}'
         targetDir: publish
         siteName: 'KingTech Labs'
 
