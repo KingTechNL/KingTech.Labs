@@ -14,7 +14,7 @@ on:
 #: Jobs to execute
 jobs:
   ## Build DockerFileCopy image
-  build-dockerfilecopy:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -34,6 +34,8 @@ jobs:
         sourceDir: '${{ github.workspace }}'
         targetDir: '${{ github.workspace }}/publish'
         siteName: 'KingTech Labs'
+        baseUrl: '/KingTech.Labs/'
+        url: 'https://kingtechlabs.github.io/KingTech.Labs/'
 
     ### Deploy to GitHub Pages
     - name: Deploy to GitHub Pages
