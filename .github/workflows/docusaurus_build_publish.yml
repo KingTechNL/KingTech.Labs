@@ -37,6 +37,9 @@ jobs:
         baseUrl: '/'
         #url: 'https://kingtechlabs.github.io/KingTech.Labs/'
 
+    - name: copy CNAME file to publish directory
+      run: cp CNAME publish/CNAME
+
     ### Deploy to GitHub Pages
     - name: Deploy to GitHub Pages
       uses: kingtechnl/githubactions/deploy-pages@feature/docusaurus
