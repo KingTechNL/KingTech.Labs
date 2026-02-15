@@ -34,8 +34,7 @@ jobs:
         sourceDir: '${{ github.workspace }}'
         targetDir: '${{ github.workspace }}/publish'
         siteName: 'KingTech Labs'
-        #baseUrl: '/'
-        url: 'http://labs.kingtech.nl/'
+        baseUrl: '/KingTech.Labs/'
         #url: 'https://kingtechlabs.github.io/KingTech.Labs/'
 
     ### Deploy to GitHub Pages
