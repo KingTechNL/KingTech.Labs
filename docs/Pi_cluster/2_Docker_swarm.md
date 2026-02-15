@@ -1,0 +1,2 @@
+# Docker swarm
+The cluster is using docker swarm as a base. As some docker containers need mounted files for configurations, we use glusterfs to synchronise specific directories on the host operating systems.
