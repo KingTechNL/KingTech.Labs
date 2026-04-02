@@ -41,7 +41,7 @@ jobs:
     - name: Deploy to GitHub Pages
       uses: kingtechnl/githubactions/deploy-pages@main
       with:
-        sourceDir: '${{ github.workspace }}/publish'
+        sourceDir: '${{ github.workspace }}/_publish'
         targetBranch: 'gh-pages'
         commitMessage: "Deploy site github actions"
         userName: 'github-actions'
