@@ -22,27 +22,24 @@ jobs:
     - uses: actions/checkout@v3
       with: 
         fetch-depth: 0
-    ### Generate version number
-    - name: Get version
-      id: get_version
-      uses: kingtechnl/githubactions/gitversion@main
 
     ### Build docusaurus site
     - name: Build docusaurus site
-      uses: kingtechnl/githubactions/docusaurus/build@feature/docusaurus
+      uses: kingtechnl/githubactions/docusaurus-build@main
       with:
-        sourceDir: '${{ github.workspace }}'
-        targetDir: '${{ github.workspace }}/publish'
+        targetDir: '${{ github.workspace }}/_publish'
         siteName: 'KingTech Labs'
         baseUrl: '/'
-        #url: 'https://kingtechlabs.github.io/KingTech.Labs/'
-
-    - name: copy CNAME file to publish directory
-      run: cp CNAME publish/CNAME
+        brand: 'KingTech'
+        logo: 'https://www.gravatar.com/avatar/1c367716e9c649121b5b877ad2f1b72f'
+        favicon: 'https://www.gravatar.com/avatar/1c367716e9c649121b5b877ad2f1b72f'
+        packages: 'react-image-gallery@2.1.1'
+        #customCss: './static/custom-css.css'
+        NavbarFromRootDir: 'true'
 
     ### Deploy to GitHub Pages
     - name: Deploy to GitHub Pages
-      uses: kingtechnl/githubactions/deploy-pages@feature/docusaurus
+      uses: kingtechnl/githubactions/deploy-pages@main
       with:
         sourceDir: '${{ github.workspace }}/publish'
         targetBranch: 'gh-pages'
@@ -50,4 +47,4 @@ jobs:
         userName: 'github-actions'
         userEmail: 'github-actions@users.noreply.github.com'
         token: ${{ secrets.DEPLOYMENT_TOKEN }}
-    
+        url: 'labs.kingtech.nl'

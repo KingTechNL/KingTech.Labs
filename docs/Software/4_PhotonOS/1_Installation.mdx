@@ -1,0 +1,32 @@
+# Installation
+
+The installation of photon OS itself is pretty straight forward. Grab the latest .ISO file from [the official github](https://github.com/vmware/photon/wiki/Downloading-Photon-OS) and use it to create a new VM.
+
+## Enable SSH
+
+After Photon OS is installed, we enable SSH so we can easily remote into it. <br/>
+Photon OS does not feature the nano text editor, so that is what we install first. Run the following command:
+
+```bash
+tdnf install nano
+```
+
+Type `Y` when prompted.
+
+With nano installed we can edit the sshd_config file. Optionally it is possible to use VIM for this.
+
+```bash
+nano /etc/ssh/sshd_config
+```
+
+Uncomment the line `#PermitRootLogin prohibit-password`
+and change `prohibit-password` to `yes`.
+
+Next we restart sshd by running the following command:
+
+```bash
+systemctl restart sshd
+```
+
+We should now be able to ssh into the server. For this we can use tools like Putty, MobaXterm or MRemote.
+

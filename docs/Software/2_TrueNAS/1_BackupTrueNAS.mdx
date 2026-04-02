@@ -1,0 +1,73 @@
+# Backup TrueNAS
+While a NAS is a great way to storing and backing up your data. It is always a good idea to backup your NAS in a separate location.
+
+While RAID and other redundancy mechanisms can prevent a lot of misery, a NAS is in the end just a device that can break.
+
+In this chapter, we show multiple ways to backup your TrueNAS system.
+
+## Backup to external drive
+One of the simplest ways to backup a NAS, is to copy its contents to an external drive. While this is not a good way to create automated backups, it can come in handy when doing some tricky maintenance to your server. 
+
+In case you are running TrueNAS as a virtual server, you might first need to pass the external drive in your hypervisor host software:
+
+![Add USB Drive](../../images/TrueNas/add-usb-drive-proxmox.png)
+
+Unfortunately TrueNAS does not support hot-swap of drives, so we need to fully reboot the TrueNAS server.
+Login to the server and shut it down. After TrueNAS has stopped, it will still show as running in Proxmox. Shutdown the VM in proxmox, and start it again after it is fully stopped. 
+
+In the case of a virtual TrueNAS, we can confirm the hardware was added successfully the proxmox GUI (hardware tab). If all is correct, this line should be black rather then orange.
+
+The device is however not mounted to the TrueNAS file system yet. To do this we first need to look for the name assigned to the newly added drive using the following command.
+
+```bash
+lsblk
+```
+
+This command lists all drives connected to the system, find your drive (e.g. `sdc`) and make sure it has at least 1 partition (e.g. `sdc1`)
+
+Now that we know our drive/partition name (e.g. `sdc1`), we can mount it to our file system:
+
+```bash
+mkdir /mnt/external-drive
+mount -t ext3 /dev/sdc1 /mnt/external-drive
+```
+
+The device should now be mounted in /mnt/external-drive. Confirm this by running the following command in the TrueNAS shell:
+
+```bash
+ls /mnt/
+```
+
+![Mount external drive](../../images/TrueNas/mount-external-drive.png)
+
+With the external drive mounted we can copy directories from the internal file system using the TrueNAS shell.
+Unfortunately we cant simply run the cp command and be done with it, as TrueNAS will abort long running processes by default. As the TrueNAS scale linux kernal doesn’t allow us to install tools like screen, we need to do with what we have. A good alternative to screen it TMUX. 
+
+
+Open a new TMUX session by running the tmux command in the TrueNAS shell:
+
+```bash
+tmux
+```
+
+In the new TMUX window, we use the rsync  copy command as it is more powerful then CP:
+
+```bash
+rsync -avzh --info=progress2 [source/folder] [destination/folder]
+```
+
+Now, press `ctrl+b` followed by `d` to exit the tmux window. You are now back in your original session.
+You can always go back to the tmux session to check on the progress by running the following command:
+
+```bash
+tmux a
+```
+
+## Automated sync
+
+TrueNAS can automatically be synced with another TrueNAS instance. This allows us to have a second device on a remove location.
+This device does not need to be as fast as our main NAS, as we wont be working directly from it. It merely servers as an 'external' backup location.
+
+:::WARNING
+[TODO]
+:::

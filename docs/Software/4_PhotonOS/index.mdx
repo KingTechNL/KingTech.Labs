@@ -1,0 +1,41 @@
+# Photon OS
+
+## What is Photon OS?
+
+Photon OS is a minimal, open-source Linux distribution created and maintained by VMware. It's specifically optimized to run containerized workloads and virtual machines with minimal overhead. Photon OS strips away unnecessary components to create a lean operating system that focuses on performance, security, and container orchestration.
+
+## Key Characteristics
+
+**Lightweight and Fast**
+- Photon OS boots quickly and requires minimal system resources, making it perfect for virtualized environments.
+- The base image is tiny compared to traditional Linux distributions, allowing you to pack more containers per physical host.
+
+**Container-First Design**
+- Pre-optimized for Docker and container runtimes with all necessary tools included out of the box.
+- Supports both privileged and unprivileged container execution.
+- Direct support for container orchestration platforms like Kubernetes.
+
+**Security-Focused**
+- Includes a hardened kernel with minimal attack surface.
+- Built-in SELinux support for fine-grained access control.
+- Regular security updates and patches.
+
+## Why Use Photon OS?
+
+At KingTech Labs, we chose Photon OS for our Docker host VM because:
+
+- **Minimal Resource Footprint**: Running a full Ubuntu or CentOS machine just to host Docker wastes memory and disk space. Photon OS does the job with a fraction of the overhead.
+- **Purpose-Built**: It's not a "general-purpose OS that also runs containers"—it's specifically engineered for containerized workloads.
+- **Easy Maintenance**: With fewer packages and components, there's less surface area to patch and maintain.
+- **Performance**: The stripped-down design means more CPU and memory available for your actual containers and services.
+
+## Typical Use Cases
+
+- Docker and container hosts in virtualized environments.
+- Kubernetes nodes in both on-premises and cloud deployments.
+- Lightweight VM workloads where resources are constrained.
+- Lab environments where you want to maximize density of services.
+- Edge computing and IoT scenarios requiring minimal system footprint.
+
+Photon OS is ideal when you want the reliability of a Linux distribution without the bloat of a general-purpose OS.
+
