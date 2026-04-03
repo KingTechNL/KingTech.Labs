@@ -1,0 +1,5 @@
+label: "PhotonOS"
+position: 5
+link:
+  type: generated-index
+  description: "PhotonOS installation and configuration."

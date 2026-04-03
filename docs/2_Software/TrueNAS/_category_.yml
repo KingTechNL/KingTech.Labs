@@ -1,0 +1,5 @@
+label: "TrueNAS"
+position: 3
+link:
+  type: generated-index
+  description: "TrueNAS installation and configuration."

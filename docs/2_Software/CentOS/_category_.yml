@@ -1,0 +1,5 @@
+label: "CentOS"
+position: 4
+link:
+  type: generated-index
+  description: "CentOS installation and configuration."
