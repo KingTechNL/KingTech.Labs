@@ -1,0 +1,133 @@
+---
+sidebar_position: 3
+---
+
+# Mounting drives
+
+:::info[Note]
+This is not proxmox specific, but goes for most Linux distros.
+:::
+
+Whenever a new drive is added, physical or logical (using the RAID arrays) it needs to be mounted to the (host) Linux system. 
+This is similar to assigning a drive letter to a new drive in the windows disk management tool.
+For this instruction we followed the steps from [this website](https://www.debiantutorials.com/add-a-second-hard-disk/).
+
+
+## Normal / logical drives
+
+When mounting a normal or logical drive, like the RAID drive we created using the HP Smart Array, we need to take the following steps.
+
+The first step is to identify all drives connected to the host machine:
+
+```bash
+fdisk -l
+```
+
+Sample result:
+
+```bash
+Disk /dev/sdb: 21.4 GB, 21474836480 bytes
+255 heads, 63 sectors/track, 2610 cylinders
+Units = cylinders of 16065 * 512 = 8225280 bytes
+
+Device Boot Start End Blocks Id System
+/dev/sdb1 * 1 2517 20217771 83 Linux
+/dev/sdb2 2518 2610 747022+ 5 Extended
+/dev/sdb5 2518 2610 746991 82 Linux swap / Solaris
+ 
+Disk /dev/sda: 32.2 GB, 32212254720 bytes
+255 heads, 63 sectors/track, 3916 cylinders
+Units = cylinders of 16065 * 512 = 8225280 bytes
+ 
+Disk /dev/sda doesn't contain a valid partition table
+```
+
+In our example the new disk is /dev/sda , we will need to partition it using the following command:
+
+```bash
+cfdisk /dev/sda
+
+> New -> Primary -> Specify size in MB
+> Write
+> Quit
+```
+
+This will create a new *"disk"* called `/dev/sda1`. 
+
+Next we format the drive using the ext3 filesystem, this might take a while:
+
+```bash
+mkfs.ext3 /dev/sda1
+```
+
+In order to mount the new ‘disk’, we create a mounting directory and 
+
+```bash
+mount the ‘disk’ there:
+mkdir /mnt/sda1
+mount -t ext3 /dev/sda1 /mnt/sda1
+```
+
+This will only mount the disk until the host system reboots, in order to preserve the mounted drive after a reboot we need to add it to our 
+fstab file:
+
+```bash
+nano /etc/fstab
+```
+
+
+Add the following line and store the file
+
+```bash
+/dev/sda1 /mnt/sda1 ext3 defaults,errors=remount-ro 0 1
+```
+
+You have now successfully added a new drive to the linux host system.
+
+
+## Shared drives
+
+It is also possible to mount drives that are shared using, for example, the SMB protocol. By mounting a shared drive it will appear in linux like any other drive and can thus be used as such. In this example we mount an SMB share.
+
+In order to mount a shared drive, we first need to install cifs-utils:
+
+```bash
+sudo apt-get install cifs-utils
+```
+
+Next, we create a file for our SMB login credentials:
+
+```bash
+nano /root/.smbcredentials
+```
+
+Put your SMB login credentials in this file:
+
+```bash
+username=admin
+password=admin
+```
+
+Finally we let our fstab file automatically mount our SMB drives on startup:
+
+```bash
+nano /etc/fstab
+```
+
+Add the following lines:
+
+```bash
+//<ip>/<source> <destination> cifs credentials=<credentialsfile>,file_mode=0755,dir_mode=0755 0 0
+```
+
+example:
+
+```bash
+//192.168.2.91/movies /root/plexmediaserver/media/movies cifs credentials=/root/.smbcredentials,file_mode=0755,dir_mode=0755 0 0
+```
+
+We can force reloading the fstab file using :
+
+```bash
+sudo mount -a
+```

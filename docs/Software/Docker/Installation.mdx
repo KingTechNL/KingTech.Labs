@@ -1,0 +1,32 @@
+---
+sidebar_position: 3
+---
+
+# Installation
+This installation is based on our [CentOS](../Linux/Distros/CentOS/index.mdx).
+
+First we need to remove the preinstalled buildah version as it conflicts with the one that is needed for our docker installation:
+
+```bash
+yum erase podman buildah
+```
+
+Next, we run the docker installation script that is provided by docker.com:
+
+```bash
+curl -fsSL https://get.docker.com/ | sh
+```
+
+After the installation is finished we check if everything was installed correctly by starting docker and checking its status:
+
+```bash
+sudo systemctl start docker
+sudo systemctl status docker
+```
+
+If all went well, the status should be active (running).
+We now configure systemctl to start docker automatically if the server is (re)booted:
+
+```bash
+sudo systemctl enable docker
+```

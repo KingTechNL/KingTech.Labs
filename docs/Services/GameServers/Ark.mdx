@@ -1,1 +1,272 @@
 # ARK Survival Evolved
+
+ARK Survival Evolved is a massive open-world dinosaur survival game where players build bases, tame creatures, and battle each other on an island full of prehistoric chaos. At KingTech Labs, we host a dedicated ARK server so friends and community members can explore, survive, and thrash dinosaurs together without relying on public servers.
+
+Running your own ARK server means full control over game rules, mods, difficulty, and community. Below is our setup: what hardware it runs on, how we installed it, and what we've learned keeping a game server alive.
+
+## Server specifications
+Our ARK game server runs on a CentOS 8 VM with the minimal ARK system requirements:
+
+| 	  | ARK server specs  (10-15 players) |
+| --- | --------------------------------- |
+| CPU |	2 CPU cores @ 3.0GHz+ |
+| RAM | 8GB |
+| Storage | 75GB SSD *(Recommended, 20GB is minimum)* |
+| Operating System | CentOS Linux  *(windows is also possible)* |
+
+## Installation
+
+For our ARK server, we based our installation on the [official ARK wiki](https://ark.wiki.gg/wiki/Server_configuration) and [ARK fandom wiki](https://ark.fandom.com/wiki/Dedicated_server_setup) websites.
+
+As always, the first thing we do when installing something is updating the linux server. The default package manager for CentOS is yum:
+
+```bash
+yum update -y
+```
+
+The next step installing a new user that will be used for our ark server and set its password:
+
+```bash
+adduser arkserver
+passwd arkserver
+```
+
+Next we open the ports needed to run our ARK server. 
+If you want the server to be available over the internet, don’t forget to forward these ports in your router!
+
+```bash
+firewall-cmd --permanent --zone=public --add-port=27015/udp
+firewall-cmd --permanent --zone=public --add-port=7777/udp
+firewall-cmd --permanent --zone=public --add-port=32330/udp
+```
+
+The ARK game server will be running via SteamCMD (the terminal version of Steam). In order to install SteamCMD we must install some libraries first.
+
+```bash
+yum install nano wget glibc.i686 libstdc++.i686 ncurses-libs.i686 -y
+yum install epel-release -y
+yum install screen -y
+```
+
+Next we need to up the limit of opened files in order for SteamCMD to run our ARK server.
+
+```bash
+echo "fs.file-max=100000" >> /etc/sysctl.conf
+```
+
+Confirm the limit is indeed `100000`.
+
+```bash
+sysctl -p /etc/sysctl.conf
+```
+
+We do the same for our security limits file:
+
+```bash
+echo -e "* soft nofile 1000000\n* hard nofile 1000000" >> /etc/security/limits.conf
+```
+
+We are now ready to install SteamCMD and our ARK game server. First we switch to our arkserver user:
+
+```bash
+su – arkserver
+cd ~
+```
+
+From here we install SteamCMD:
+
+```bash
+wget https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz
+tar xf steamcmd_linux.tar.gz
+./steamcmd.sh
+```
+
+Now we install our ARK game server:
+
+```bash
+./steamcmd.sh +login anonymous +force_install_dir ./ark +app_update 376030 validate +quit
+```
+
+If the installation crashed while downloading, don’t worry. You can just run the command again and it will continue where it left off. 
+For some reason this sometimes happens with bigger installations. 
+My guess is that it has something to do with the system RAM filling up.
+
+We now need to create an update script. This allows us to automatically update our ARK game server using SteamCMD.
+
+```bash
+nano /home/arkserver/updatearkserver
+```
+
+Add the following lines to the update script file:
+
+```bash
+login anonymous
+force_install_dir ./ark
+app_update 376030
+quit
+```
+
+We can now update our ARK game server using the following command:
+
+```bash
+./steamcmd.sh +runscript updatearkserver
+```
+
+Next we create another script in order to start the ARK game server.
+
+```bash
+nano /home/arkserver/ark/arkserver.sh
+```
+
+And fill the file with the following lines and modify `YourAdminPassword`:
+
+```bash
+#!/bin/bash
+
+SessionName="ServerName"
+port="7777"
+queryport="27015"
+rconport="32330"
+ServerAdminPassword="YourAdminPassword"
+maxplayers="50"
+
+screen -dmS ark ./ark/ShooterGame/Binaries/Linux/ShooterGameServer TheIsland?listen?Multihome=0.0.0.0?SessionName=$?MaxPlayers=$?QueryPort=$?RCONPort=$?Port=$?ServerAdminPassword=$ -server -log
+```
+
+Example of actually executed command (don’t use this):
+
+```bash
+screen -dmS ark ./ark/ShooterGame/Binaries/Linux/ShooterGameServer TheIsland?listen?multihome=0.0.0.0?SessionName=MyServer?MaxPlayers=50?QueryPort=27015?RCONPort=32330?Port=7777?ServerAdminPassword="Password" -server -log
+```
+
+Update the permissions for the start script:
+
+```bash
+chmod +x /home/arkserver/ark/arkserver.sh
+```
+
+The final thing we need to configure, is setting a server password. This prevents any unwanted guests to enter the server. If you don’t want to password protect your server and instead have it publicly available you can skip this step.
+
+In order to set a server password we update the GameUserSettings.ini file (you may need to start the service once to create the file):
+
+```bash
+nano ark/ShooterGame/Saved/Config/LinuxServer/GameUserSettings.ini
+```
+
+Add the following line at the end of the file and change `MyPassword` to your preferred password.
+
+```bash
+ServerPassword=MyPassword
+```
+
+We are now ready to start our ARK game server. <br/>
+To start the server, execute:
+
+```bash
+sh /home/arkserver/ark/arkserver.sh
+```
+
+To quit the server, execute:
+
+```bash
+screen -S ark -X quit
+```
+
+In order to run the ARK game server as a proper linux system service, we have to add it to systemd.
+
+```bash
+nano /lib/systemd/system/ark-server.service
+```
+
+Add the following to the newly created file:
+
+```bash
+[Unit]
+Description=ARK: Survival Evolved dedicated server
+Wants=network-online.target
+After=syslog.target network.target nss-lookup.target network-online.target
+
+[Service]
+ExecStartPre=./home/arkserver/steamcmd.sh +runscript updatearkserver
+ExecStart=sh /home/arkserver/ark/arkserver.sh
+LimitNOFILE=100000
+ExecReload=/bin/kill -s HUP $MAINPID
+ExecStop=/bin/kill -s INT $MAINPID
+User=arkserver
+Group=arkserver
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Now we update our systemd:
+
+```bash
+systemctl daemon-reload
+```
+
+And we start our ARK game server:
+
+```bash
+systemctl enable ark-server.service
+systemctl start ark-server
+```
+
+In order to check the status of our ARK game server we can run the following command:
+
+```bash
+systemctl status ark-server.service
+```
+
+We can now start, stop and check our ARK server as any other linux service.
+
+
+## Simple backup script
+
+The most basic way to backup a file or directory, is to copy it to a shared drive. 
+As our ARK saves are only 70Mb (once its zipped) we create a script that zips and stores the archived files to an SMB share. The original tutorial can be found [here](https://www.admfactory.com/how-to-automatically-backup-files-and-directories-in-linux/).
+
+First, we create an SMB share directory `/mnt/backup` as shown in [our linux tutorial](../../Software/Proxmox/MountingDrives.mdx). 
+Next we create a backup script:
+
+```bash
+nano /home/arkserver/backup.sh
+```
+
+The script contents are as follows:
+
+```bash
+#!/bin/bash
+TIME=`date +%b-%d-%y`                      # This Command will read the date.
+FILENAME=backup-arkserver-$TIME.tar.gz     # The filename including the date.
+SRCDIR=ark/ShooterGame/Saved               # Source backup folder.
+DESDIR=/mnt/backup                         # Destination of backup file.
+tar -cpzf $DESDIR/$FILENAME $SRCDIR
+```
+
+Next we need to give the script execution permission:
+
+```bash
+chmod 777 backup.sh
+```
+
+The script can be tested by running the following command and checking the `/mnt/backup` directory:
+
+```bash
+./backup.sh
+```
+
+If all is working, we can add the script to a cronjob. This will make it run every set interval:
+
+```bash
+crontab -e
+```
+
+In the crontab file we add the following to run the script every day at 4:00, mind yourself that the file is opened with vim.
+
+```bash
+# M H DOM M DOW CMND
+00 04 * * * /bin/bash /backup.sh
+```
+
+We have now created a simple backup script that backs up a directory every day. After the first night we should find a new `.tar.gz` file in the backup directory.

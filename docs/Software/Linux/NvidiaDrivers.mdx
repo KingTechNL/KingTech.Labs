@@ -1,0 +1,96 @@
+---
+sidebar_position: 4
+---
+
+# Nvidia drivers
+
+For our Plex server, we want to be able to use hardware transcoding. This is much more efficient then software transcoding, and puts the load on the GPU rather then the CPU. 
+
+While in Windows you can simply slap a graphics card in your motherboard, and Windows will (usually) take care of the drivers and software for you. In Linux (in our case [CentOS](./Distros/CentOS/index.mdx)) it involves a bit more work.
+
+As we run our plex server in a virtual machine, we first need to pass our GPU to our VM. In our case this is our `Nvidia Quadro P2000` GPU.
+
+![Pass GPU](../../images/Linux/Proxmox-pass-gpu-to-vm.png)
+
+After rebooting our VM we need to confirm the GPU is recognized.
+Run the following command:
+
+```bash
+lspci -nn | egrep -i "3d|display|vga"
+```
+
+This should output something like:
+
+```bash
+00:10.0 VGA compatible controller [0300]: NVIDIA Corporation GP106GL [Quadro P2000] [10de:1c30] (rev a1)
+```
+
+Unfortunately just passing the GPU to our VM is not enough, we need to install the Nvidia driver in order to use it. 
+With the following command we can see is there is already a driver connected to our GPU:
+
+```bash
+lshw -class display
+```
+
+If there is a driver specified in the configuration section we need to uninstall that first, in our case the nouveau driver is used.
+
+In order to disable the driver we modify the `/etc/default/grub` file.
+
+```bash
+sudo nano /etc/default/grub
+```
+
+Append the following to the `GRUB_CMDLINE_LINUX` line, where nouveau is your current driver:
+
+```bash
+modprobe.blacklist=nouveau
+```
+
+After saving and closing the file, we rebuild our grub config and reboot linux:
+
+```bash
+sudo grub2-mkconfig -o /boot/grub2/grub.cfg
+sudo reboot
+```
+
+Next, we download the new Nvidia driver from https://www.nvidia.com/Download/index.aspx. 
+
+![download nvidia driver](../../images/Linux/download-nvidia-driver.png)
+
+Before we can install the driver though, we must install some dependencies.
+
+```bash
+sudo yum group install "Development Tools"
+sudo yum -y install kernel-devel
+sudo yum -y install libglvnd-devel elfutils-libelf-devel
+sudo yum -y install epel-release
+sudo yum -y install dkms
+```
+
+Now we install the Nvidia driver:
+
+```bash
+bash NVIDIA-Linux-x86_64-470.63.01.run
+```
+If this fails, you might need to update the GCC version (typical when it fails at 5% of the dmkg step). Check 
+
+```bash
+nano /var/lib/dkms/nvidia/470.63.01/build/make.log
+```
+
+If that doesn’t work, try installing the driver without dmkg registration. This shouldn’t matter much.
+
+And finally we reboot the system once more:
+sudo reboot
+
+In order to verify the driver is linked to the GPU we can once again run:
+
+```bash
+lshw -class display
+```
+
+And the following command can be used to check which apps are using the nvidia driver:
+
+```bash
+nvidia-smi
+```
