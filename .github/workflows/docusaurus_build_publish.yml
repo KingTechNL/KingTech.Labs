@@ -25,7 +25,7 @@ jobs:
 
     ### Build docusaurus site
     - name: Build docusaurus site
-      uses: kingtechnl/githubactions/docusaurus-build@main
+      uses: kingtechnl/githubactions/docusaurus-build@feature/fix-docusaurus-navbar-subfolders-not-showing
       with:
         targetDir: '${{ github.workspace }}/_publish'
         siteName: 'KingTech Labs'
