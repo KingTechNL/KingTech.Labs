@@ -3,4 +3,172 @@ sidebar_position: 4
 ---
 
 # Docker swarm
-The cluster is using docker swarm as a base. As some docker containers need mounted files for configurations, we use glusterfs to synchronise specific directories on the host operating systems.
+
+Docker Swarm is Docker's native clustering and orchestration tool. It turns a collection of individual Docker hosts into a unified cluster where containers can be deployed, scaled, and managed as a single cohesive system. Unlike the complexity of Kubernetes, Swarm is lightweight, easy to set up, and perfect for homelabs and small-to-medium deployments. Its smaller footprint also makes it more suitable to run on lower powered systems like Raspberry Pi's.
+
+Our cluster architecture uses Docker Swarm as the foundation. As some docker containers need mounted files for configurations, we use glusterfs to synchronise specific directories on the host operating systems.
+
+## Install docker engine and docker compose
+Installing docker on a Raspberry Pi used to be done with a special ARM version, but since Raspberry Pi OS 64bit, we can just use the [standard Debian installation](https://docs.docker.com/engine/install/debian/).  
+
+Before we can install docker, we need to add the docker package repository to our APT sources:
+
+```bash
+# Add Docker's official GPG key:
+sudo apt-get update
+sudo apt-get install ca-certificates curl
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+# Add the repository to Apt sources:
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update
+```
+
+To install docker, run the following command:
+
+```bash
+sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+```
+
+If you want to confirm the installation was successful, you can try running the hello-world image:
+
+```bash
+sudo docker run hello-world
+```
+
+## Install and configure docker swarm
+If you want to run multiple docker servers in a swarm, continue with the steps below. If you are planning to run a single RPi with docker (compose), skip this chapter.<br/>
+The steps below come straight from the [docker documentation](https://docs.docker.com/engine/swarm/swarm-tutorial/create-swarm/).
+
+On our first RPi, we need to initialize docker swarm on our RPi server using the command below, replace `<MANAGER-IP>` for the local IP of the RPi. Note; ONLY run this command on the first server.
+
+```bash
+docker swarm init --advertise-addr <MANAGER-IP>
+```
+
+In the output of this command, there will be a command to join new workers to your swarm, e.g.:
+
+```bash
+docker swarm join --token SWMTKN-1-5nayn3uopggcye5x5vcwl26sj27rm6un7x9lljowaplkbza0de-7xsiz34m5ik1u3vq3lfyy9d3b 192.168.1.220:2377
+```
+
+:::warning
+Do not use this command, as it will initiate a worker node. <br/>
+For our purpose we want more manager nodes *(Docker recommends three or five manager nodes per cluster to implement high availability. There must be an odd number of managers)*.
+:::
+
+To get the command for a manager node, run following command on your original server (for worker nodes, replace `manager` for `worker`):
+
+```bash
+docker swarm join-token manager
+```
+
+On our second and third server, we run the command to join the swarm as a manager.
+On our fourth server, we run the command to join the swarm as a worker.
+
+
+## Install portainer
+Next, we start adding portainer for easy management of our docker images and containers. Since docker swarm takes care of the distribution of containers for us, we only need to do this on one of our servers. 
+
+First, we retrieve the `.yml` file for portainer:
+
+```bash
+curl -L https://downloads.portainer.io/ce-lts/portainer-agent-stack.yml -o portainer-agent-stack.yml
+```
+
+Next, we spin up the portainer stack:
+
+```bash
+docker stack deploy -c portainer-agent-stack.yml portainer  
+```
+
+Next, we can go to our portainer server on `https://[server-ip]:9443` and set a username and password.<br/>
+It will ask us to create a new environment next. We dont need to do this, just click on the home button and select the primary environment. 
+
+
+## Install GlusterFS
+In order to synchronize the data across our nodes, we will use **‘glusterfs’**. Gluster is a free and open source distributed file system.
+
+Gluster supports multiple [volume configurations](https://www.golinuxcloud.com/what-is-glusterfs-tutorial-types-of-volumes), such as `distributed`, `replicated`, and `distributed-replicated` volumes. Think of it as *RAID 0*, *RAID 1* and *RAID 10*, but instead of using harddrives we are using entire servers.<br/>
+For our use-case we will be configuring a `replicated volume`.
+
+The official installation documentation can be found [here](https://docs.gluster.org/en/latest/Install-Guide/Install/).
+
+First, we run the following command on each node in our swarm to install glusterfs:
+
+```bash
+sudo apt update && sudo apt install glusterfs-server -y
+sudo systemctl enable --now glusterd
+```
+
+Next, we pick 1 node and run the following command for each other node in the cluster. The `NODE_IP` is the ip address of the nodes **other** then the one we are using.
+
+```bash
+sudo gluster peer probe <NODE_IP>
+```
+
+If all went well, the `gluster peer probe` command will respond with: `peer probe: success`. We will confirm everything is connected by running the following command:
+
+```bash
+sudo gluster peer status
+```
+
+If all is well, we will see all nodes except for the one we are currently on.
+
+Next, we need to create a directory we want to sync, e.g. `/data/gluster`.
+
+```bash
+sudo mkdir /data
+sudo mkdir /data/gluster
+```
+
+Next, we need to create a gluster volume across all nodes. We do this by running the following command:
+
+```bash
+sudo gluster volume create shared-vol replica 4 transport tcp \
+<NODE1_IP>:/data/gluster \
+<NODE2_IP>:/data/gluster \
+<NODE3_IP>:/data/gluster \
+<NODE4_IP>:/data/gluster \
+force
+```
+
+Take in account the amount of nodes you are using, in our case we have 4 nodes.<br/>
+The force option is needed since we are using a root folder.
+
+Next, we start our volume using the following command:
+
+```bash
+sudo gluster volume start shared-vol
+```
+
+Confirm the volume is started on all nodes:
+
+```bash
+sudo gluster volume info
+```
+
+Next, we mount the gluster volume we just created to our file systems. This is needed for some reason (though maybe only once to trigger the volume), and can also be done on machines that not part of this gluster volume yet:
+
+```bash
+sudo mount -t glusterfs <ANY_GLUSTER_NODE_IP>:/shared-vol /mnt/gluster
+```
+
+If the system is running this volume as a node, the `<ANY_GLUSTER_NODE_IP>` can be localhost.
+
+Finally, we can simply mount the synchronized folder (`/data/gluster`) to our docker containers:
+
+```bash
+version: '3.8'
+
+services:
+  app:
+    image: nginx:latest
+    volumes:
+      - /mnt/gluster:/app-data 
+```
