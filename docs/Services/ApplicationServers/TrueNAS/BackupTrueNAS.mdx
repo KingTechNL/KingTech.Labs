@@ -14,7 +14,7 @@ One of the simplest ways to backup a NAS, is to copy its contents to an external
 
 In case you are running TrueNAS as a virtual server, you might first need to pass the external drive in your hypervisor host software:
 
-![Add USB Drive](../../../images/TrueNas/add-usb-drive-proxmox.png)
+![Add USB Drive](https://res.cloudinary.com/kingtech/image/upload/q_auto/f_auto/v1775413407/add-usb-drive-proxmox_f3c1ql.png)
 
 Unfortunately TrueNAS does not support hot-swap of drives, so we need to fully reboot the TrueNAS server.
 Login to the server and shut it down. After TrueNAS has stopped, it will still show as running in Proxmox. Shutdown the VM in proxmox, and start it again after it is fully stopped. 
@@ -42,7 +42,7 @@ The device should now be mounted in /mnt/external-drive. Confirm this by running
 ls /mnt/
 ```
 
-![Mount external drive](../../../images/TrueNas/mount-external-drive.png)
+![Mount external drive](https://res.cloudinary.com/kingtech/image/upload/q_auto/f_auto/v1775413405/mount-external-drive_nniqjc.png)
 
 With the external drive mounted we can copy directories from the internal file system using the TrueNAS shell.
 Unfortunately we cant simply run the cp command and be done with it, as TrueNAS will abort long running processes by default. As the TrueNAS scale linux kernal doesn’t allow us to install tools like screen, we need to do with what we have. A good alternative to screen it TMUX. 

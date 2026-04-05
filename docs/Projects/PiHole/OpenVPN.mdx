@@ -1,0 +1,40 @@
+---
+sidebar_position: 3
+---
+
+# Open VPN
+
+OpenVPN is a robust, open-source VPN protocol that creates encrypted tunnels into private networks. At KingTech, we run an OpenVPN server so we can can securely access local services and files from anywhere in the world.
+
+In order to install and configure OpenVPN, we follow the tutorial that can be found [here](https://pimylifeup.com/raspberry-pi-vpn-server/]. 
+
+The first step is to download and run the PiVPN script from the PiVPN GitHub page. This will start a simple installation wizard for either a WireGuard or an OpenVPN server.
+
+```bash
+curl -L https://install.pivpn.io | bash
+```
+
+Go through the wizard, selecting the following options when asked:
+-	When asked to switch to a static IP or keep using DHCP, select `YES` (keep using DHCP).
+- Select the existing (pi / admin) user when asked for a user.
+-	When asked to choose between WireGuard or `OpenVPN`, choose OpenVPN.
+-	When asked to use the default settings or to modify them, choose `YES` to modify.
+-	Choose `UDP`
+-	Choose the `default` OpenVPN port (1194)
+-	Select the preferred DNS server.
+-	Choose DNS Entry when asked whether clients use a public IP or DNS Entry when connecting to your server.
+-	Select your preferred certificate.
+    - Higher numbers are safer, but require more processing power.
+    - For more systems with limited processing power (like a Raspberry Pi 4) 256-bit certificates are recommended, this should be safe enough.
+-	The final prompt will ask you to reboot the system, please do.
+
+Next, we can add new OpenVPN users using the PiVPN script.
+After rebooting has completed, run the following command and choose a safe username/password combo:
+
+```bash
+sudo pivpn add
+```
+
+Now we can copy the newly created `.ovpn` file from `~/ovpns/` to any client device and login to our VPN server.
+To fetch the `.ovpn` file from our server, we can connect to it using FileZilla and ‘download’ the file.
+

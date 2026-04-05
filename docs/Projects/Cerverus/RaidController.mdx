@@ -1,0 +1,98 @@
+---
+sidebar_position: 5
+---
+
+# P410 Raid controller
+
+[Cerverus](../Cerverus/Hardware.mdx) V1 uses an HP Smart Array P410 RAID controller, This PCI Express card features 2 internal SAS ports which can connect up to 12 drives in total. When using SAS drives the maximum speed is up to 6Gb/s, with SATA drives this is 3Gb/s.
+
+Out of the box the card supports RAID 0, 1 and 1+0. Cerverus V1 added an HP SmartArray 1GB FBWC Module with a capacitor that adds 1GB of cache memory with a capacitor to flush the cache to an additional flash memory module in case of power loss. This enables the use of additional RAID configurations 5, 5+0, 6 and 6+0.
+
+![P410 Raid controller](https://res.cloudinary.com/kingtech/image/upload/q_auto/f_auto/v1775413549/P410RaidController_mz68ox.png)
+
+In order to control the HP Smart Array using linux (proxmox) we first need to install the install the ssacli utility software that comes with it. This is done via the (ssh) terminal of the host machine.
+
+First we need to confirm our RAID card is recognized:
+
+```bash
+lspci -k|grep -i -A2 raid
+```
+
+Sample result:
+
+```bash
+ 06:00.0 RAID bus controller: Hewlett-Packard Company Smart Array G6 controllers (rev 01)
+Subsystem: Hewlett-Packard Company Smart Array P410
+Kernel driver in use: hpsa
+```
+
+Next we get and install the HP keys needed to download and install the utility software.
+
+```bash
+curl http://downloads.linux.hpe.com/SDR/hpPublicKey1024.pub | apt-key add -
+curl http://downloads.linux.hpe.com/SDR/hpPublicKey2048.pub | apt-key add -
+curl http://downloads.linux.hpe.com/SDR/hpPublicKey2048_key1.pub | apt-key add -
+curl http://downloads.linux.hpe.com/SDR/hpePublicKey2048_key1.pub | apt-key add -
+```
+
+And we add the HP repository to download the utility software (Make sure you change ‘buster/current’ to your current linux kernal)
+
+```bash
+echo -e "deb http://downloads.linux.hpe.com/SDR/repo/mcp/ buster/current non-free" > /etc/apt/sources.list.d/hpe.list
+```
+
+We are now ready to install the ssacli utility software needed to configure the RAID card.
+
+```bash
+apt-get update && apt-get install ssacli
+```
+
+If the installation is successful, we can start the utility software by running the following command:
+
+```bash
+ssacli
+```
+
+If the installation was successful you should see something like this:
+
+```bash
+HP Smart Storage Administrator CLI 3.10.3.0
+    Detecting Controllers…Done.
+    Type “help” for a list of supported commands.
+    Type “exit” to close the console.
+    =>
+```
+
+Confirm all is working as supposed by running the following command:
+
+```bash
+=> ctrl all show config
+Smart Array P410 in Slot 1                (sn: PTCCRID92560K55)
+   Port Name: 1I
+   Port Name: 2I
+   DL18xG6BP        at Port 1I, Box 1, OK
+   Array A (SATA, Unused Space: 0  MB)
+      logicaldrive 1 (5.5 TB, RAID 1+0, OK)
+      physicaldrive 1I:0:1 (port 1I:box 1:bay 1, SATA HDD, 4 TB, OK)
+      physicaldrive 1I:0:2 (port 1I:box 1:bay 2, SATA HDD, 4 TB, OK)
+      physicaldrive 1I:0:3 (port 1I:box 1:bay 3, SATA HDD, 4 TB, OK)
+      physicaldrive 1I:0:4 (port 1I:box 1:bay 4, SATA HDD, 4 TB, OK)
+   Enclosure SEP (Vendor ID HP, Model DL18xG6BP) 248  (WWID: 5001438018357BC3, Port: 1I, Box: 1)
+   Expander 250  (WWID: 5001438018357BB0, Port: 1I, Box: 1)
+   SEP (Vendor ID PMCSIERA, Model  SRC 8x6G) 249  (WWID: 500143801890BFDF)
+=>
+```
+
+Now we are ready to configure our RAID card. Cerverus V1 uses a RAID 5 configuration for its first 4 drives, so this guide focuses on that. A more complete explaination of the ssacli commands can be found [here](https://be-virtual.net/hpe-storage-controller-management-ssacli/).
+
+In order to configure RAID 5 for the first 4 drives we use the following command in ssacli:
+
+```bash
+ctrl slot=1 create type=ld drives=1I:0:1,1I:0:2,1I:0:3,1I:0:4 raid=5 forced
+```
+
+Now that we have created a new logical drive it should show up as (for example) `/dev/sda1`. Exit ssacli by running the `exit` command and check all linux drives by running the following command:
+
+```bash
+lsblk -f
+```

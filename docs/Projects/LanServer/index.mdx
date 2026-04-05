@@ -1,0 +1,30 @@
+---
+sidebar_position: 1
+---
+
+
+# LAN Server
+LAN parties were the way to play together in the late 90s and early 2000s.
+Online gaming was still limited, internet connections were often slow, and many people even paid by the hour.
+You gathered your friends in one room, connected every PC and console you could find, and played all night.
+
+Today, gaming online with friends and chatting through Discord is the default.
+Still, meeting in person for a LAN party offers an energy that online play cannot fully replace.
+
+Modern games bring one big challenge to that old-school experience: size.
+AAA titles regularly exceed 100 GB, and the number of games people want to play keeps growing.
+If attendees do not already have those games installed, downloading them all at party time can take hours.
+
+To avoid that delay, we built a dedicated LAN server that hosts game installers and updates locally, so everyone can get set up quickly and jump into playing.
+
+
+## TrueNAS
+
+TrueNAS is a great way to share files with multiple computers at the same time. A NAS (or Network Attached Storage) is, in its most basic form, an external harddrive that is connected over the network instead of a USB cable. This allows multiple computers to read and write files from and to it at the same time.
+
+## LanCache / SteamCache
+
+Lancache (formerly known as steamcache) is a tool that intercepts downloads for steam/origin/battlenet/etc and stores them locally. The next time the same file needs to be downloaded, it will use the stored (cached) file instead of the one from the remote server. 
+This can greatly reduce the time it take to download a game on multiple machines, as it only needs to be downloaded from the internet once and is then downloaded from the server. 
+
+Lancache is an amazing tool for hosting LAN parties or simply having multiple PC’s with the same games.

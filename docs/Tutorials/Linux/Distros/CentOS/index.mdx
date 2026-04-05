@@ -1,0 +1,42 @@
+---
+sidebar_position: 1
+---
+
+# CentOS
+
+CentOS is a free Linux distribution built from the sources of Red Hat Enterprise Linux (RHEL). It provides a stable, predictable, and manageable platform suitable for production environments, development, and lab deployments. CentOS combines enterprise-grade reliability with the freedom and flexibility of open-source software.
+
+## Key Characteristics
+
+**Enterprise-Grade Stability**
+- Built directly from RHEL sources, ensuring compatibility and stability.
+- Thoroughly tested before release, minimizing the risk of breaking changes.
+- Long-term support cycles allow servers to run for years without major OS upgrades.
+
+**Lean Yet Complete**
+- CentOS is lightweight compared to bloated general-purpose distributions, yet includes all necessary components for real-world workloads.
+- No unnecessary bloat, but also no missing tools you'd expect from a professional OS.
+- Excellent performance on both bare metal and virtualized hardware.
+
+**Security and Compliance**
+- Regular security patches and updates through the community-maintained repositories.
+- SELinux support for fine-grained access control policies.
+- Predictable release cycles make it easier to plan and schedule updates.
+
+## Why We Use CentOS at KingTech Labs
+
+At our homelab, one of the purposes of our main server ([Cerverus](../../../../Projects/Cerverus/Hardware.mdx)) is hosting dedicated game servers in isolated VMs. We chose CentOS because:
+
+- **Lightweight Yet Complete**: Game servers often need dedicated resources with minimal overhead. CentOS provides a full-featured OS without wasting precious CPU and RAM on unnecessary services.
+- **Stability**: Game servers benefit from a rock-solid OS that won't surprise you with breaking changes or unexpected behavior.
+- **Wide Software Support**: Tools, libraries, and game server software (like ARK server) are well-tested on CentOS, ensuring compatibility and reliability.
+- **Long Support Windows**: We don't want to manage frequent OS upgrades—CentOS provides stability over many years.
+
+## Typical Use Cases
+
+- Dedicated game server hosting (ARK, Minecraft, Satisfactory, etc.).
+- Web servers and application backends requiring long-term stability.
+- Database servers in production environments.
+- Development and testing environments for RHEL-based systems.
+- Virtualized workloads where you need predictable, tested behavior.
+- On-premises infrastructure requiring minimal maintenance overhead.
