@@ -4,8 +4,93 @@ sidebar_position: 3
 
 # Proxmox Installation
 
-Proxmox is the host operating system for our main servers, it is a bare metal hypervisor like ESXI (VSphere). 
+[Proxmox](https://www.proxmox.com/) is the host operating system for our main servers, it is a bare metal hypervisor like ESXI (VSphere). 
 Proxmox has gained a lot of popularity over the years as its free version is very complete.
 
+## Download the ISO
 
-TODO
+First, download the latest Proxmox VE ISO from the [official Proxmox website](https://www.proxmox.com/en/downloads). 
+You'll find the ISO under the "Proxmox VE" section. At the time of writing, we are using Proxmox VE 8.x.
+
+## Prepare Installation Media
+
+You'll need a USB drive (at least 2GB) or a DVD to boot the Proxmox installer.
+
+### Windows with Rufus
+
+[Rufus](https://rufus.ie/) is the recommended tool for Windows:
+
+1. Download and run Rufus
+2. In the **Device** dropdown, select your USB drive (be careful to select the correct one!)
+3. Click **Select** and choose the Proxmox ISO file you downloaded
+4. Leave the default settings (Partition scheme: **MBR**, Target system: **BIOS**, File system: **FAT32**)
+5. Click **Start** and confirm the warning that the USB drive will be erased
+6. Wait for the process to complete (usually a few minutes)
+
+Once complete, eject the USB drive and you're ready to boot.
+
+### Linux with dd
+
+If you're on Linux, you can use the `dd` command:
+
+```bash
+dd if=proxmox-ve_*.iso of=/dev/sdX bs=1M status=progress
+```
+
+Replace `/dev/sdX` with your USB device (be careful to select the correct device!). You can find your device using `lsblk` or `fdisk -l`.
+
+### Alternative: Balena Etcher
+
+If you prefer a graphical tool that works on both Windows and Linux, [Balena Etcher](https://www.balena.io/etcher/) is simple and reliable:
+
+1. Download and install Etcher
+2. Click **Flash from file** and select the Proxmox ISO
+3. Click **Select target** and choose your USB drive
+4. Click **Flash** and wait for completion
+
+## Boot and Install
+
+1. Insert the bootable media into your server and boot from it
+2. Select **Install Proxmox VE** from the boot menu
+3. Accept the license agreement
+4. Select your target disk (this will be erased)
+5. Configure your location, timezone, and keyboard layout
+6. Set a root password (make it strong!)
+7. Configure network settings:
+   - Hostname: Choose a descriptive name for your server
+   - IP address: Use a static IP on your network
+   - Gateway: Your router's IP address
+   - DNS: Configure your DNS servers (e.g., 8.8.8.8 or your local DNS)
+8. Review the summary and click **Install**
+
+The installation will take a few minutes. Once complete, the system will reboot.
+
+## Post-Installation
+
+After the server reboots, you should see the Proxmox login screen with the IP address displayed. 
+
+Access the web UI by opening your browser and navigating to:
+
+```
+https://<your-proxmox-ip>:8006
+```
+
+Login with:
+- Username: `root`
+- Password: The password you set during installation
+
+:::note
+Your browser may warn about the SSL certificate being self-signed. This is normal for a fresh Proxmox installation. You can safely proceed.
+:::
+
+## Update System
+
+Once logged in, it's a good idea to update Proxmox to the latest packages. Open the **Shell** from the web interface or SSH into the server, then run:
+
+```bash
+apt update && apt upgrade
+```
+
+Your Proxmox hypervisor is now ready to use! You can begin creating virtual machines and configuring your infrastructure.
+
+
