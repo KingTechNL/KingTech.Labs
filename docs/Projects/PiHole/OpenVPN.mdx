@@ -38,3 +38,25 @@ sudo pivpn add
 Now we can copy the newly created `.ovpn` file from `~/ovpns/` to any client device and login to our VPN server.
 To fetch the `.ovpn` file from our server, we can connect to it using FileZilla and ‘download’ the file.
 
+## Configure router
+
+To connect to your VPN server from outside your home network, you need a port forward in your router.
+
+Most router interfaces are different, but the required settings are usually the same:
+
+1. Give your VPN server a stable local IP address.
+    - Prefer a DHCP reservation in your router (for example `192.168.1.50`).
+2. Open your router admin page and go to **Port Forwarding** (sometimes called **NAT**, **Virtual Server**, or **Firewall Rules**).
+3. Create a new rule with the following values:
+    - Name: `OpenVPN`
+    - Protocol: `UDP`
+    - External port: `1194`
+    - Internal IP: your VPN server local IP (for example `192.168.1.50`)
+    - Internal port: `1194`
+4. Save/apply the rule and restart the router if required.
+
+After that, external clients should connect to your public IP (or your DNS name if you use dynamic DNS).
+
+:::warning
+Only forward the port you actually use, and keep OpenVPN and your Raspberry Pi updated. Exposing unnecessary ports increases your attack surface.
+:::
