@@ -43,7 +43,6 @@ jobs:
         packages: 'react-image-gallery@2.1.1'
         NavbarFromRootDir: 'true'
         #customCss: './kingtech-theme.css'
-        kingtechActionsBranch: 'feature/fix-docusaurus-navbar-subfolders-not-showing'
 
     ### Deploy to GitHub Pages
     - name: Deploy to GitHub Pages
