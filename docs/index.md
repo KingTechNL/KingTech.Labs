@@ -9,7 +9,7 @@ Welcome to KingTech Labs.
 KingTech Labs is where we document and share our most recent projects.
 This blog follows our journey as we experiment with exotic hardware, complex software, and everything in between.
 
-![Home Lab](https://res.cloudinary.com/kingtech/image/upload/q_auto/f_auto/v1775500069/Server_dusty_tsxk9x.jpg)
+![Home Lab](https://res.cloudinary.com/kingtech/image/upload/q_auto/f_auto/v1775759066/kingtech_labs_zp1qtt.png)
 
 
 ## Home Lab
