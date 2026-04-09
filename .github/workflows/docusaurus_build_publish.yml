@@ -26,8 +26,8 @@ jobs:
     - name: Export draw.io diagrams
       uses: kingtechnl/githubactions/drawio-export@feature/fix-docusaurus-navbar-subfolders-not-showing
       with:
-        input_file: 'diagrams/pi_cluster.drawio.xml'
-        output_file: 'docs/images/pi_cluster.svg'
+        input: 'diagrams/pi_cluster.drawio.xml'
+        output: 'docs/images/pi_cluster.svg'
         format: 'svg'
 
     ### Build docusaurus site
