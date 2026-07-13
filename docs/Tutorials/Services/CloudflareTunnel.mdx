@@ -1,0 +1,118 @@
+---
+sidebar_position: 1
+---
+
+import ImageGallery from 'react-image-gallery';
+import "react-image-gallery/styles/image-gallery.css";
+import CloudinaryGallery from '@site/src/components/CloudinaryGallery';
+
+export const cloudinaryOriginalBaseUrl = 'https://res.cloudinary.com/kingtech/image/upload';
+export const cloudinaryThumbnailBaseUrl = 'https://res.cloudinary.com/kingtech/image/upload/c_fill,g_auto,w_250,h_150,q_auto,f_auto';
+
+# Cloudflare Tunnels
+Cloudflare Tunnel is a secure outbound connector that creates an encrypted path from your private network to Cloudflare without opening inbound ports on your firewall. Instead of exposing services directly to the internet, your self-hosted apps stay internal and are published through Cloudflare, where you can apply DNS, access policies, and Zero Trust controls. In this guide, the tunnel runs inside an LXC container on Proxmox to provide reliable, authenticated access to homelab services.
+
+
+## Creating a Cloudflare Tunnel container in a Proxmox cluster using LXC:
+The steps below describe how to set up a Cloudflare Tunnel container using a Linux container in Proxmox.
+These steps where executed on our [MLab mini rack](../../Projects/MLabMiniRack/index.mdx) cluster.
+
+### Step 1: Download Ubuntu LXC Template
+If you don't have the LXC template for Ubuntu 24.04 yet, you need to download it first by following these steps.
+ 1. Log into your Proxmox web UI.
+ 1. Select your target Node in the left-hand Datacenter menu.
+ 1. Click on your storage (usually named `local`).
+ 1. Go to the **CT Templates** tab.
+ 1. Click **Templates**.
+ 1. Select the operating system or turnkey appliance you want, in our case this is `Ubuntu 24.04`, then click **Download**.
+
+export const gallery1Images = [
+  'v1780498640/proxmox-setup-1_gra1em.png'
+  'v1780498642/proxmox-setup-2_cjqgf8.png',
+  'v1780498647/proxmox-setup-3_dgr9s3.png',
+];
+<CloudinaryGallery
+  images={gallery1Images}
+  originalBaseUrl={cloudinaryOriginalBaseUrl}
+  thumbnailBaseUrl={cloudinaryThumbnailBaseUrl}
+/>
+
+### Step 2: Create the LXC Container
+We create a stock Ubuntu 24.04 LXC container we can use to install Cloudflare WARP.
+ 1. Log into your Proxmox web UI.
+ 1. Click Create CT in the top right corner.
+ 1. Keep Unprivileged container checked (enabled)
+ 1. On the next tab, select the `Ubuntu 24.04` template.
+ 1. On the next tab, assign 6GB of disk to the container. *(Between 4GB and 8GB is recommended)*
+ 1. On the next tab, we need to select **1** as the amount of CPU cores.
+ 1. On the next tab, select 128 MB RAM and 128 MB Swap. 
+ 1. On the next tab, we select the following network settings:
+    * **Bridge:** Must be `vmbr0` (or whichever standard bridge name exists and is identical on all cluster nodes).
+    * **VLAN Tag:** Leave blank (unless your cluster uses a specific management or traffic VLAN).
+    * **IPv4:** Select Static.
+    * **IPv4/CIDR:** Assign a static IP (e.g., `192.168.1.77/24`). Do not use DHCP, as other devices or apps need a fixed address to connect to this WARP gateway.
+    * **Gateway (IPv4):** Enter your main local router IP (e.g., `192.168.1.1`).
+ 1. On the next tab, leave the DNS settings empty. This will make it use the host settings.
+ 1. On the next tab, select `Start after created`  click finish.
+ 
+export const gallery2Images = [
+  'v1780498649/proxmox-setup-4_vuea3a.png'
+  'v1780498651/proxmox-setup-5_mheakr.png',
+  'v1780498651/proxmox-setup-6_jt2csn.png',
+  'v1780498632/proxmox-setup-7_dcp8vw.png',
+  'v1780498633/proxmox-setup-8_jncjdv.png',
+  'v1780498633/proxmox-setup-9_fu7gtb.png',
+];
+<CloudinaryGallery
+  images={gallery2Images}
+  originalBaseUrl={cloudinaryOriginalBaseUrl}
+  thumbnailBaseUrl={cloudinaryThumbnailBaseUrl}
+/>
+
+### Step 3: Install the Cloudflare Tunnel client
+ 1. Go to the [Tunnels page](https://dash.cloudflare.com/?to=/:account/tunnels) for your cloudflare account.
+ 1. Select **Create Tunnel**.
+ 1. Enter a name for your tunnel (for example: `MLAB-1`).
+ 1. Select **Create Tunnel**.
+ 1. Under **Setup Environment**, select `Debian` and `64-bit`.
+ 1. Copy the install commands shown under Install and Run and run them in the console of our new LXC.
+ 1. Once the tunnel connects, select **Continue**.
+ 1. You can now setup routes to expose through your cloudflare tunnel.
+
+export const gallery3Images = [
+  'v1780567637/cloudflare-setup-1_iu2etm.png'
+  'v1780567805/cloudflare-setup-2_klqu1j.png',
+  'v1780567986/cloudflare-setup-3_hesarr.png',
+];
+<CloudinaryGallery
+  images={gallery3Images}
+  originalBaseUrl={cloudinaryOriginalBaseUrl}
+  thumbnailBaseUrl={cloudinaryThumbnailBaseUrl}
+/>
+
+
+ ## Disable TLS Verification
+ By default, cloudflare tunnels verify TLS certificates for https routes. Some applications however require https, even if there is no valid certificate. 
+ For example: the Proxmox web GUI listens on HTTPS, but without a proper certificate this cannot be verified. Hence, for some routes, we may need to disable TLS verification in our cloudflare tunnel. The steps below describe how this is done.
+
+ 1. In the [Cloudflare dashboard](https://dash.cloudflare.com/), go to **Zero Trust** > **Networks** > **Connectors** > **Cloudflare Tunnels**.
+ 1. Choose a tunnel and select **Edit**.
+ 1. Select the **Published application routes** tab.
+ 1. Choose an application and select **Edit**.
+ 1. Under **Origin request and connection settings**, set **TLS** > **No TLS Verify** to **ON**.
+ 1. Select **Save**.
+
+
+export const gallery4Images = [
+  'v1780574328/cloudflare-setup-4_afdbhh.png'
+  'v1780574563/cloudflare-setup-5_yaerqz.png',
+  'v1780574674/cloudflare-setup-6_jd9z04.png',
+  'v1780574770/cloudflare-setup-7_zlxruk.png',
+  'v1780574854/cloudflare-setup-8_xzurxf.png',
+];
+<CloudinaryGallery
+  images={gallery4Images}
+  originalBaseUrl={cloudinaryOriginalBaseUrl}
+  thumbnailBaseUrl={cloudinaryThumbnailBaseUrl}
+/>
+

@@ -1,0 +1,58 @@
+---
+sidebar_position: 4
+---
+
+import ImageGallery from 'react-image-gallery';
+import "react-image-gallery/styles/image-gallery.css";
+import CloudinaryGallery from '@site/src/components/CloudinaryGallery';
+
+export const cloudinaryOriginalBaseUrl = 'https://res.cloudinary.com/kingtech/image/upload';
+export const cloudinaryThumbnailBaseUrl = 'https://res.cloudinary.com/kingtech/image/upload/c_fill,g_auto,w_250,h_150,q_auto,f_auto';
+
+# High availability
+
+As we are running our LXC container and virtual machines in a proxmox cluster, we can set it up for 'high availability'. This means that, when the machine the LXC/VM runs on goes down, the LXC/VM is automatically migrated to another node.
+
+
+
+## Step 1: Add the Container to HA Resources
+ 1. Go to **Datacenter** -> **HA** -> **Resources** tab.
+ 1. Click **Add**.
+ 1. Click the VM/CT dropdown. Your Cloudflare Tunnel LXC ID will be visible here. Select it.
+ 1. Set the Max. Restart to 1 and Max. Relocate to 1.
+ 1. Ensure Requested State is set to started.
+ 1. Click **Add** 
+
+export const gallery1Images = [
+  'v1780498636/high-availability-setup-1_oy8lto.png'
+  'v1780498638/high-availability-setup-2_bswkwx.png',
+];
+<CloudinaryGallery
+  images={gallery1Images}
+  originalBaseUrl={cloudinaryOriginalBaseUrl}
+  thumbnailBaseUrl={cloudinaryThumbnailBaseUrl}
+/>
+
+## Step 2: Configure the Node Affinity Rule
+Now that the container is an active HA resource, the rules engine can interact with it.
+ 1. Click on the main Datacenter folder at the top of your left resource tree.
+ 1. Navigate to the HA section -> click on the Rules tab.
+ 1. Click the Create / Add button and choose Node Affinity Rule.
+ 1. Fill out the rule parameters:
+    1. **Comment/Name:** Type tunnel-priority so you can identify it.
+    1. **Nodes:** Select your three cluster nodes and declare their numerical priority (higher numbers represent your preferred primary nodes):
+        * **Node 1:** Priority 3 (Main preferred host)
+        * **Node 2:** Priority 2 (First backup)
+        * **Node 3:** Priority 1 (Last resort)
+    1. **Resources:** Look for your Cloudflare LXC ID in the drop-down selection and check the box next to it to attach it to this rule.
+ 1. Click Create.
+
+export const gallery2Images = [
+  'v1780498638/high-availability-setup-3_jbpmti.png'
+  'v1780498639/high-availability-setup-4_hzyoph.png',
+];
+<CloudinaryGallery
+  images={gallery2Images}
+  originalBaseUrl={cloudinaryOriginalBaseUrl}
+  thumbnailBaseUrl={cloudinaryThumbnailBaseUrl}
+/>

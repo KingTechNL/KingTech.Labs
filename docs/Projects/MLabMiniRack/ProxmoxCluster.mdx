@@ -1,0 +1,33 @@
+---
+sidebar_position: 3
+---
+
+# Proxmox cluster
+Using the Proxmox Operating System we are able to setup clusters of multiple devices (nodes). This allows us to manage our virtual machines and services from a single user interface. If setup correctly, it also allows for 'high availability' on its virtual machines. Meaning if a single node dies, the virtual machine is quickly migrated to another machine ensuring minimal downtime.
+
+In this chapter, we show how to setup a proxmox cluster using 3 machines.
+
+## Prerequisites
+Before installing proxmox, we need to make sure the following conditions are met:
+
+ 1. Every node has 2 drives:
+    * One for proxmox (OS)
+    * One for our Ceph pool
+ 1. Virtualization is enabled in the BIOS:
+    * For Intel: Enable **VT-x** *(Intel Virtualization Technology)* and **VT-d** *(Intel Virtualization for Directed I/O)*.
+    * for AMD: Enable **SVM** *(Secure Virtual Machine)* .
+ 1. *Optional:* enable 'power-on after power loss' in the BIOS.
+
+
+
+
+
+## Setting up the Proxmox cluster
+To setup a Proxmox cluster, we first create a cluster on our main node and add the other (empty) nodes using the web interface.
+
+### Important pre-conditions
+ - **Empty nodes:** The nodes we will add cannot have any Virtual Machines (VM's) or containers (LXCs) on them as their local configuration will be overridden.
+ - **Network and time:** All nodes need a unique IP address, the in the same network and have the same time synchronisation (using NTP).
+ - **Quorum (amount of nodes):** For a stable cluster with automatic failover (High Availability) we need at least 3 physical nodes. In case you plan on using only 2 nodes, you will need an external QDevice as an independant voter to prevent downtime.
+
+### Step 1: Create a cluster on your first node.
